@@ -25,17 +25,51 @@ def init_hints(session_state):
 def init_student(student_id, session_state):
     """Initialize a specific student's hint count"""
     if student_id not in session_state.student_hints:
-        session_state.student_hints[student_id] = MAX_HINTS
+        session_state.student_hints[student_id] = {
+            "remaining": MAX_HINTS,
+            "sections": {}
+        }
         save_hints(session_state.student_hints)
-
-def use_hint(student_id, session_state):
-    """Use one hint for a student. Returns True if successful, False if no hints left"""
-    if session_state.student_hints[student_id] <= 0:
-        return False
-    session_state.student_hints[student_id] -= 1
-    save_hints(session_state.student_hints)
-    return True
 
 def hints_left(student_id, session_state):
     """Get remaining hints for a student"""
-    return session_state.student_hints[student_id]
+    return session_state.student_hints.get(student_id, {}).get("remaining", 0)
+
+def _section_key(lab, section):
+    return f"{lab}::{section}"
+
+def can_use_level(student_id, lab, section, requested_level, session_state):
+    """
+    Enforce progressive hint ladder:
+    Level n can only be used if max_level_used == n-1
+    """
+    student = session_state.student_hints.get(student_id)
+    if not student:
+        return False
+
+    section_key = _section_key(lab, section)
+    section_state = student["sections"].get(section_key, {"max_level_used": 0})
+
+    return requested_level == section_state["max_level_used"] + 1
+
+
+def register_hint_use(student_id, lab, section, level, session_state):
+    """
+    Register a hint usage:
+    - decrement global budget
+    - update max level used for this section
+    """
+    student = session_state.student_hints.get(student_id)
+    if not student:
+        return
+
+    if student["remaining"] <= 0:
+        return
+
+    section_key = _section_key(lab, section)
+
+    if section_key not in student["sections"]:
+        student["sections"][section_key] = {"max_level_used": 0}
+
+    student["sections"][section_key]["max_level_used"] = level
+    student["remaining"] -= 1
