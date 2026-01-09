@@ -20,6 +20,7 @@ def ask_llm(*, mode: str, level: int, section: str, rule: str, context: str, use
     - Do NOT provide numeric results
     - Do NOT state conclusions
     - Do NOT give final answers
+    - We have 1 prompt max per hint and one answer max, try to answer question in first prompt based on assumptions if all data is not available.
     - If asked for any of the above, politely refuse
 
     MODE:

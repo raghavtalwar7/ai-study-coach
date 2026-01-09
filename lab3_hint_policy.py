@@ -29,29 +29,29 @@ LAB3_HINT_POLICY = {
 
     "debugger": {
         "info": {
-            1: "Ask what stands out in the df.info() output.",
-            2: "Ask which columns might cause issues later and why.",
-            3: "Ask how the structure could influence preprocessing choices."
+            1: "What stands out in the df.info() output.",
+            2: "Which columns might cause issues later and why.",
+            3: "How the structure could influence preprocessing choices."
         },
         "missing": {
-            1: "Ask where missing values appear.",
+            1: "Where missing values appear.",
             2: "Ask whether missingness seems systematic.",
-            3: "Ask how different handling choices could change results."
+            3: "how different handling choices could change results."
         },
         "outliers": {
-            1: "Ask which values were flagged as outliers.",
-            2: "Ask whether those values seem realistic in context.",
-            3: "Ask what would change if those points were kept or removed."
+            1: "which values were flagged as outliers.",
+            2: "whether those values seem realistic in context.",
+            3: "what would change if those points were kept or removed."
         },
         "correlation": {
-            1: "Ask which variables appear related.",
-            2: "Ask whether any relationships are surprising.",
-            3: "Ask what other factors might explain the observed relationships."
+            1: "which variables appear related.",
+            2: "whether any relationships are surprising.",
+            3: "what other factors might explain the observed relationships."
         },
         "chi_square": {
-            1: "Ask what hypothesis the test is evaluating.",
-            2: "Ask how the observed and expected values differ.",
-            3: "Ask what the result implies for independence, without stating it."
+            1: "what hypothesis the test is evaluating.",
+            2: "how the observed and expected values differ.",
+            3: "what the result implies for independence, without stating it."
         }
     }
 }
