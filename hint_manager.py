@@ -73,3 +73,4 @@ def register_hint_use(student_id, lab, section, level, session_state):
 
     student["sections"][section_key]["max_level_used"] = level
     student["remaining"] -= 1
+    save_hints(session_state.student_hints)

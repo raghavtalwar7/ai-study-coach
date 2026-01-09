@@ -6,8 +6,14 @@ from logger import init_logs, log_interaction
 
 st.set_page_config(page_title="AI Study Coach", layout="centered")
 
-lab = st.query_params.get("lab", "lab3")
-context = st.query_params.get("context", "")
+# -------------------
+# Read query parameters from URL (notebook or link)
+# -------------------
+lab = st.query_params.get("lab", ["lab3"])[0]
+context = st.query_params.get("context", [""])[0]
+section_param = st.query_params.get("section", [None])[0]  # can be None
+mode_param = st.query_params.get("mode", [None])[0]        # can be None
+hint_level_param = st.query_params.get("hint_level", [None])[0]  # can be None
 
 if lab != "lab3":
     st.error("This AI coach is only available for Lab 3.")
@@ -30,13 +36,23 @@ else:
     st.write("Please enter your id to see your hint balance")
 
 sections = ["info", "missing", "outliers", "correlation", "chi_square"]
-section_ui = st.selectbox("Select Lab Section", sections)
-section = section_ui
+if section_param in sections:
+    section = section_param
+else:
+    section = st.selectbox("Select Lab Section", sections)
 
-mode_ui = st.selectbox("Mode", ["Explainer", "Debugger"])
-mode = mode_ui.lower()
+modes = ["Explainer", "Debugger"]
+if mode_param and mode_param.lower() in ["explainer", "debugger"]:
+    mode = mode_param.lower()
+else:
+    mode_ui = st.selectbox("Mode", modes)
+    mode = mode_ui.lower()
 
-hint_level = st.selectbox("Hint Level", [1, 2, 3])
+if hint_level_param and hint_level_param in ["1","2","3"]:
+    hint_level = int(hint_level_param)
+else:
+    hint_level = st.selectbox("Hint Level", [1, 2, 3])
+
 student_context = st.text_area(
     "Paste output or describe your issue",
     height=150
