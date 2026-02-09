@@ -5,7 +5,7 @@ DATABASE_URL = st.secrets["database"]["url"]
 
 POOL = SimpleConnectionPool(
     minconn=1,
-    maxconn=10,
+    maxconn=5,
     dsn=DATABASE_URL
 )
 
