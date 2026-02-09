@@ -1,7 +1,8 @@
 import streamlit as st
 from llm_client import ask_llm
 from lab3_hint_policy import LAB3_HINT_POLICY
-from hint_manager import init_hints, init_student, can_use_level, register_hint_use, hints_left
+from services.auth_service import authenticate_student
+from services.hint_service import hints_left, register_hint
 from logger import init_logs, log_interaction
 
 st.set_page_config(page_title="AI Study Coach", layout="centered")
@@ -9,29 +10,39 @@ st.set_page_config(page_title="AI Study Coach", layout="centered")
 # -------------------
 # Read query parameters from URL (notebook or link)
 # -------------------
-lab = st.query_params.get("lab", ["lab3"])[0]
-context = st.query_params.get("context", [""])[0]
-section_param = st.query_params.get("section", [None])[0]  # can be None
-mode_param = st.query_params.get("mode", [None])[0]        # can be None
-hint_level_param = st.query_params.get("hint_level", [None])[0]  # can be None
+lab = st.query_params.get("lab", "lab3")
+context = st.query_params.get("context", "")
+section_param = st.query_params.get("section", None) # can be None
+mode_param = st.query_params.get("mode", None)        # can be None
+hint_level_param = st.query_params.get("hint_level", None)  # can be None
 
-if lab != "lab3":
-    st.error("This AI coach is only available for Lab 3.")
-    st.stop()
+if not lab:
+    lab = "lab3"
 
 # Init state
-init_hints(st.session_state)
 init_logs(st.session_state)
 
 # UI
-st.title("📘 AI Study Coach")
+st.title("AI Study Coach")
 
-student_id = st.text_input("Enter your student id (required)")
+if "student_id" not in st.session_state:
+    st.session_state.student_id = ""
+
+student_id = st.text_input(
+    "Enter your student id (required)",
+    value=st.session_state.student_id
+)
+
+if student_id:
+    st.session_state.student_id = student_id
+
 
 # Initialize student and show their hint count
 if student_id:
-    init_student(student_id, st.session_state)
-    st.write(f"Hints left for **{student_id}**: **{hints_left(student_id, st.session_state)}**/15")
+    if not authenticate_student(student_id):
+        st.error("Unauthorized student ID ❌")
+        st.stop()
+    st.write(f"Hints left for **{student_id}**: **{hints_left(student_id)}**/15")
 else:
     st.write("Please enter your id to see your hint balance")
 
@@ -58,53 +69,67 @@ student_context = st.text_area(
     height=150
 )
 
-if st.button("Get Hint"):
-    if not student_id:
-        st.error("Please enter your id first")
-        st.stop()
-    if not can_use_level(student_id, lab, section, hint_level, st.session_state):
-        st.error(
-            "You must request hints in order: "
-            "Level 1 → Level 2 → Level 3."
-        )
-        st.stop()
-    if hints_left(student_id, st.session_state) <= 0:
-        st.error("No hints left ❌")
-        st.stop()
+# Prevent double-click / parallel requests in UI
+if "busy" not in st.session_state:
+    st.session_state.busy = False
+
+
+if st.button("Get Hint", disabled=st.session_state.busy):
+    st.session_state.busy = True
     try:
-        rule = LAB3_HINT_POLICY[mode][section][hint_level]
-    except KeyError:
-        st.error("Invalid hint request for this lab section.")
-        st.stop()
+        if not student_id:
+            st.error("Please enter your id first")
+            st.stop()
 
-    response = ask_llm(
-        mode=mode,
-        level=hint_level,
-        section=section,
-        rule=rule,
-        context=context,
-        user_input=student_context
-    )
+        success = register_hint(student_id, lab, section, hint_level)
 
-    register_hint_use(student_id, lab, section, hint_level, st.session_state)
+        if not success:
+            st.error(
+                "Hint request denied ❌\n\n"
+                "Possible reasons:\n"
+                "- No hints left\n"
+                "- Hint levels must be requested in order (1 → 2 → 3)"
+            )
+            st.stop()
 
-    log_interaction(
-        st.session_state,
-        {
-            "student_id": student_id,
-            "lab": lab,
-            "section": section,
-            "mode": mode,
-            "level": hint_level,
-            "rule": rule,
-            "input": student_context,
-            "response": response,
-            "hints_remaining": hints_left(student_id, st.session_state)
-        }
-    )
-    st.success("Hint provided")
-    st.write(response)
-    st.info(f"You have {hints_left(student_id, st.session_state)} hints remaining")
+        st.success("Hint granted ✅")
 
-with st.expander("📜 Interaction Log"):
+        try:
+            rule = LAB3_HINT_POLICY[mode][section][hint_level]
+        except KeyError:
+            st.error("Invalid hint request for this lab section.")
+            st.stop()
+
+        response = ask_llm(
+            mode=mode,
+            level=hint_level,
+            section=section,
+            rule=rule,
+            context=context,
+            user_input=student_context
+        )
+
+        log_interaction(
+            st.session_state,
+            {
+                "student_id": student_id,
+                "lab": lab,
+                "section": section,
+                "mode": mode,
+                "level": hint_level,
+                "rule": rule,
+                "input": student_context,
+                "response": response,
+                "hints_remaining": hints_left(student_id)
+            }
+        )
+
+        st.success("Hint provided")
+        st.write(response)
+        st.info(f"You have {hints_left(student_id)} hints remaining")
+
+    finally:
+        st.session_state.busy = False
+
+with st.expander("Interaction Log"):
     st.json(st.session_state.logs)

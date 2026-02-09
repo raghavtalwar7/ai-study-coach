@@ -1,2 +1,10 @@
-streamlit
+streamlit~=1.53.1
 google-genai
+matplotlib~=3.10.8
+
+numpy
+pandas~=2.3.3
+ipython~=9.10.0
+protobuf~=6.33.5
+psycopg2-binary
+psycopg2
