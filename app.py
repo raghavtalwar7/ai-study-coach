@@ -25,6 +25,8 @@ init_logs(st.session_state)
 # UI
 st.title("AI Study Coach")
 
+
+# Use session_state for persistence, but always use the current input value for logic
 if "student_id" not in st.session_state:
     st.session_state.student_id = ""
 
@@ -33,7 +35,8 @@ student_id = st.text_input(
     value=st.session_state.student_id
 )
 
-if student_id:
+# Always use the current input value for logic, only update session_state for persistence
+if student_id != st.session_state.student_id:
     st.session_state.student_id = student_id
 
 
