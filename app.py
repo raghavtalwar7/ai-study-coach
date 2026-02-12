@@ -26,18 +26,19 @@ init_logs(st.session_state)
 st.title("AI Study Coach")
 
 
-# Use session_state for persistence, but always use the current input value for logic
+# Use session_state for persistence
 if "student_id" not in st.session_state:
     st.session_state.student_id = ""
 
 student_id = st.text_input(
     "Enter your student id (required)",
-    value=st.session_state.student_id
+    value=st.session_state.student_id,
+    key="student_id_input",
+    on_change=lambda: setattr(st.session_state, 'student_id', st.session_state.student_id_input)
 )
 
-# Always use the current input value for logic, only update session_state for persistence
-if student_id != st.session_state.student_id:
-    st.session_state.student_id = student_id
+# Update from input immediately
+st.session_state.student_id = student_id
 
 
 # Initialize student and show their hint count
