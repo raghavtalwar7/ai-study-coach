@@ -85,3 +85,40 @@ def update_hint_usage(student_id, lab, section, level):
 
     finally:
         release_conn(conn)
+
+
+def insert_log(student_id, lab, section, mode, hint_level, user_input, response, hints_remaining):
+    """Save an interaction log to the database."""
+    conn = get_conn()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                queries.INSERT_LOG,
+                (student_id, lab, section, mode, hint_level, user_input, response, hints_remaining)
+            )
+            conn.commit()
+    finally:
+        release_conn(conn)
+
+
+def get_student_logs(student_id):
+    """Get all logs for a specific student."""
+    conn = get_conn()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(queries.GET_STUDENT_LOGS, (student_id,))
+            return cur.fetchall()
+    finally:
+        release_conn(conn)
+
+
+def get_student_mode_counts(student_id):
+    """Get count of interactions by mode (explainer/debugger) for a student."""
+    conn = get_conn()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(queries.GET_STUDENT_MODE_COUNTS, (student_id,))
+            rows = cur.fetchall()
+            return {row[0]: row[1] for row in rows}
+    finally:
+        release_conn(conn)
