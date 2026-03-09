@@ -79,12 +79,17 @@ Follow this rule exactly:
 {rule}
 
 GLOBAL CONSTRAINTS (NON-NEGOTIABLE):
-- Do NOT provide code
-- Do NOT provide calculations
-- Do NOT provide numeric results
+- Do NOT provide complete, ready-to-use solutions
+- Do NOT provide actual calculations or numeric results
 - Do NOT give final answers or conclusions
 - Use only ONE response
 - Be concise and helpful
+
+WHAT YOU CAN DO:
+- Suggest relevant function/method names that could help
+- Show SHORT usage examples (1-2 lines max) of how to use suggested functions
+- Point students to specific library/module names (e.g., "use the `math` module")
+- Explain function parameters that are relevant to their problem
 
 MODE: {mode}
 
@@ -92,24 +97,34 @@ MODE: {mode}
 IF MODE = EXPLAINER:
 - Explain the relevant concept briefly and clearly
 - Focus only on what the student is missing to proceed
+- Suggest relevant functions or methods they could explore
+- Show minimal examples of those functions' syntax if helpful
 - Do NOT relate the explanation to their exact solution
 --------------------------------
 IF MODE = DEBUGGER:
 
-First classify the student input:
+FIRST, scan for these errors in order of priority:
 
-A) If it contains a Python error/exception:
+1) SYNTAX/NAMING ERRORS (function names, variable names, typos):
+→ Point out the exact error (e.g., "pears" should be "pearsonr")
+→ Show the correct syntax in a 1-line example
+→ Explain what the correct function does
+
+2) IMPORT/MODULE ERRORS (ModuleNotFoundError, ImportError):
+→ Suggest the installation command if needed
+→ Show the correct import statement
+
+3) LOGIC/TYPE ERRORS (ValueError, TypeError, AttributeError):
 → State the conceptual cause in ONE short sentence
-→ Do NOT ask a question
-→ Do NOT give the fix
-→ Do NOT mention code to write
+→ Suggest a relevant function or approach to consider
+→ Show a minimal example if it helps clarify
 
-B) If the student shows logic or partial work:
-→ Ask ONE guiding question that points to the mistake
-→ The question must reference a specific step, assumption, or variable
+4) DATA QUALITY ISSUES (unexpected values, shapes, types):
+→ Ask ONE guiding question about what the student expected
+→ Suggest how to inspect the data (e.g., df.head(), df.dtypes)
+→ Do NOT give the complete fix
 
-C) If the student asks for the final answer:
-→ Politely refuse and redirect to what they should examine instead
+If multiple errors exist, address them in priority order above.
 --------------------------------
 
 STYLE:
@@ -124,6 +139,11 @@ STYLE:
 
     STUDENT INPUT:
     {user_input}
+
+    RULE TO FOLLOW:
+    {rule}
+    
+    INSTRUCTIONS: Answer the student's direct question first. Then, if applicable, connect your answer to the rule about {rule.lower()}.
     """
 
     max_attempts = len(_KEY_MANAGER.keys)
@@ -134,7 +154,7 @@ STYLE:
             response = client.models.generate_content(
                 model="gemini-2.5-flash",
                 contents=[
-                    {"role": "user", "parts": [{"text": system_prompt + "\n" + user_input}]}
+                    {"role": "user", "parts": [{"text": system_prompt + "\n\n" + user_prompt}]}
                 ],
             )
             return response.text
