@@ -64,7 +64,7 @@ def _get_client():
 
 
 def ask_llm(*, mode: str, level: int, section: str, rule: str, context: str, user_input: str,):
-    """Ask the LLM with strict Lab 3 policy enforcement and key failover.
+    """Ask the LLM with strict Lab 5 policy enforcement and key failover.
 
     Behavior:
     - Uses keys from Streamlit secrets (`GOOGLE_API_KEYS` list or comma-separated string,

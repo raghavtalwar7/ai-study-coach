@@ -1,6 +1,6 @@
 import streamlit as st
 from llm_client import ask_llm
-from lab3_hint_policy import LAB3_HINT_POLICY
+from lab5_hint_policy import LAB5_HINT_POLICY
 from services.auth_service import authenticate_student
 from services.hint_service import hints_left, register_hint
 from logger import init_logs, log_interaction
@@ -10,14 +10,14 @@ st.set_page_config(page_title="AI Study Coach", layout="centered")
 # -------------------
 # Read query parameters from URL (notebook or link)
 # -------------------
-lab = st.query_params.get("lab", "lab3")
+lab = st.query_params.get("lab", "lab5")
 context = st.query_params.get("context", "")
 section_param = st.query_params.get("section", None) # can be None
 mode_param = st.query_params.get("mode", None)        # can be None
 hint_level_param = st.query_params.get("hint_level", None)  # can be None
 
 if not lab:
-    lab = "lab3"
+    lab = "lab5"
 
 # Init state
 init_logs(st.session_state)
@@ -60,7 +60,7 @@ if student_id:
 else:
     st.write("Please enter your id to see your hint balance")
 
-sections = ["info", "missing", "outliers", "correlation", "chi_square"]
+sections = ["classification", "confusion_matrix", "plots", "regression", "regression_metrics", "residual"]
 if section_param in sections:
     st.session_state.section = section_param
 else:
@@ -118,7 +118,7 @@ if st.button("Get Hint", disabled=(not student_id) or st.session_state.busy):
                 )
             else:
                 try:
-                    rule = LAB3_HINT_POLICY[st.session_state.mode][st.session_state.section][st.session_state.hint_level]
+                    rule = LAB5_HINT_POLICY[st.session_state.mode][st.session_state.section][st.session_state.hint_level]
                 except KeyError:
                     st.error("Invalid hint request for this lab section.")
                 else:
